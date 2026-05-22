@@ -54,7 +54,7 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy Multi-Container to ACI
-        uses: azure/azure-cli@v2
+        uses: azure/azure-cli@v1
         with:
           azcliversion: latest
           inlineScript: |
