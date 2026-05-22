@@ -2,38 +2,50 @@ name: Deploy MultiDocker
 on:
   push:
     branches:
-      - main # check your repo, your default branch might be master!
+      - master # check your repo, your default branch might be master!
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t rallycoding/react-test-up -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true rallycoding/react-test-up npm test
+      - run: docker build -t fendmicrocut/react-test-up -f ./client/Dockerfile.dev ./client
+      - run: docker run -e CI=true fendmicrocut/react-test-up npm test
 
-      - run: docker build -t rallycoding/multi-client-up ./client
-      - run: docker build -t rallycoding/multi-nginx-up ./nginx
-      - run: docker build -t rallycoding/multi-server-up ./server
-      - run: docker build -t rallycoding/multi-worker-up ./worker
+      - run: docker build -t fendmicrocut/multi-client-up ./client
+      - run: docker build -t fendmicrocut/multi-nginx-up ./nginx
+      - run: docker build -t fendmicrocut/multi-server-up ./server
+      - run: docker build -t fendmicrocut/multi-worker-up ./worker
 
-      - run: docker push rallycoding/multi-client-up
-      - run: docker push rallycoding/multi-nginx-up
-      - run: docker push rallycoding/multi-server-up
-      - run: docker push rallycoding/multi-worker-up
+      - run: docker push fendmicrocut/multi-client-up
+      - run: docker push fendmicrocut/multi-nginx-up
+      - run: docker push fendmicrocut/multi-server-up
+      - run: docker push fendmicrocut/multi-worker-up
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'
 
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v18
+#      - name: Deploy to EB
+#        uses: einaregilsson/beanstalk-deploy@v18
+#        with:
+#          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+#          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+#          application_name: multi-docker
+#          environment_name: Multi-docker-env
+#          existing_bucket_name: elasticbeanstalk-us-east-1-923445559289
+#          region: us-east-1
+#          version_label: ${{ github.sha }}
+#         deployment_package: deploy.zip
+
+#Prerequisites
+#1. Azure App Service: Create a web app in the Azure Portal.
+#2. Publish Profile: Go to your App Service's Overview page, click Download publish profile, and save the file.
+#3. GitHub Secret: In your repository, go to Settings > Secrets and variables > Actions and create a new secret named AZURE_WEBAPP_PUBLISH_PROFILE with the contents of your downloaded profile.
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: multi-docker
-          environment_name: Multi-docker-env
-          existing_bucket_name: elasticbeanstalk-us-east-1-923445559289
-          region: us-east-1
-          version_label: ${{ github.sha }}
-          deployment_package: deploy.zip
+          app-name: multi-docker
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: deploy.zip
