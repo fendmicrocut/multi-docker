@@ -1,123 +1,65 @@
-name: Deploy MultiContainer
+name: Build, Push, and Deploy Multi-Container App
 on:
   push:
     branches:
       - master # check your repo, your default branch might be master!
 
+env:
+  RESOURCE_GROUP: "TestUdemyCourseRG"
+  ACI_NAME: "multi-container-aci"
+  LOCATION: "southeastasia"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t fendmicrocut/react-test-up -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true fendmicrocut/react-test-up npm test
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
 
-      - run: docker build -t fendmicrocut/multi-client-up ./client
-      - run: docker build -t fendmicrocut/multi-nginx-up ./nginx
-      - run: docker build -t fendmicrocut/multi-server-up ./server
-      - run: docker build -t fendmicrocut/multi-worker-up ./worker
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - run: docker push fendmicrocut/multi-client-up
-      - run: docker push fendmicrocut/multi-nginx-up
-      - run: docker push fendmicrocut/multi-server-up
-      - run: docker push fendmicrocut/multi-worker-up
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
-#      - name: Generate deployment package
-#        run: zip -r deploy.zip . -x '*.git*'
+      - name: Build and Push Client Image
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/multi-client ./client
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/multi-client:latest
 
-#      - name: Deploy to EB
-#        uses: einaregilsson/beanstalk-deploy@v18
-#        with:
-#          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-#          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-#          application_name: multi-docker
-#          environment_name: Multi-docker-env
-#          existing_bucket_name: elasticbeanstalk-us-east-1-923445559289
-#          region: us-east-1
-#          version_label: ${{ github.sha }}
-#         deployment_package: deploy.zip
+      - name: Build and Push Nginx Image
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/multi-nginx ./nginx
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/multi-nginx:latest
 
-      # Log in to Azure using a Service Principal or Publish Profile
+      - name: Build and Push Server Image
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/multi-server ./server
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/multi-server:latest
+
+      - name: Build and Push Worker Image
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/multi-worker ./worker
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/multi-worker:latest
+
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Multiple Containers to Azure Container Apps
-        uses: azure/CLI@v2
+      - name: Deploy Multi-Container to ACI
+        uses: azure/aci-deploy@v1
         with:
-#          inlineScript: |
-#            az containerapp update \
-#              --name "multi-container-app" \
-#              --resource-group "TestUdemyCourseRG" \
-#              --container-name-images \
-#                "client=docker.io/fendmicrocut/multi-client-up:latest" \
-#                "nginx=docker.io/fendmicrocut/multi-nginx-up:latest" \
-#                "server=docker.io/fendmicrocut/multi-server-up:latest" \
-#                "worker=docker.io/fendmicrocut/multi-worker-up:latest"
-          inlineScript: |
-            echo "Creating the multi-container configuration file dynamically..."
-            
-            cat << 'EOF' > deploy-aci.yaml
-            apiVersion: '2021-10-01'
-            location: southeastasia
-            name: TestUdemyCourseRG
-            properties:
-              imageRegistryCredentials:
-                - server: index.docker.io
-                  username: ${{ secrets.DOCKER_USERNAME }}
-                  password: ${{ secrets.DOCKER_PASSWORD }}
-              containers:
-              - name: client
-                properties:
-                  image: docker.io/fendmicrocut/multi-client-up:latest
-                  resources:
-                    requests:
-                      cpu: 1.0
-                      memoryInGB: 1.5
-                  ports:
-                  - port: 3000
-              - name: nginx
-                properties:
-                  image: docker.io/fendmicrocut/multi-nginx-up:latest
-                  resources:
-                    requests:
-                      cpu: 1.0
-                      memoryInGB: 1.5
-                  ports:
-                  - port: 80
-              - name: server
-                properties:
-                  image: docker.io/fendmicrocut/multi-server-up:latest
-                  resources:
-                    requests:
-                      cpu: 1.0
-                      memoryInGB: 1.5
-                  ports:
-                  - port: 8080
-              - name: worker
-                properties:
-                  image: docker.io/fendmicrocut/multi-worker-up:latest
-                  resources:
-                    requests:
-                      cpu: 1.0
-                      memoryInGB: 1.5
-                  ports:
-                  - port: 5000
-              osType: Linux
-              ipAddress:
-                type: Public
-                ports:
-                - protocol: TCP
-                  port: 80
-                - protocol: TCP
-                  port: 8080
-            type: Microsoft.ContainerInstance/containerGroups
-            EOF
-
-            echo "Executing inline script to update Azure Container Instances..."
-            
-            az container create \
-              --resource-group "TestUdemyCourseRG" \
-              --file deploy-aci.yaml
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          dns-name-label: ${{ env.ACI_NAME }}
+          name: ${{ env.ACI_NAME }}
+          location: ${{ env.LOCATION }}
+          acr-user: ${{ secrets.ACR_USERNAME }}
+          acr-password: ${{ secrets.ACR_PASSWORD }}
+          config-file: ./aci-compose.yaml

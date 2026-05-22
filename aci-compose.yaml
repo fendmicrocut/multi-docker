@@ -1,0 +1,59 @@
+apiVersion: '2021-10-01'
+location: southeastasia
+name: multi-container-aci
+properties:
+  containers:
+  - name: client
+    properties:
+      image: udemydemoregistry.azurecr.io/multi-client:latest
+      ports:
+      - port: 3000
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  - name: nginx
+    properties:
+      image: udemydemoregistry.azurecr.io/multi-nginx:latest
+      ports:
+      - port: 80
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  - name: server
+    properties:
+      image: udemydemoregistry.azurecr.io/multi-server:latest
+      ports:
+      - port: 8080
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  - name: worker
+    properties:
+      image: udemydemoregistry.azurecr.io/multi-worker:latest
+      ports:
+      - port: 5000
+        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  osType: Linux
+  ipAddress:
+    type: Public
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 8080
+    dnsNameLabel: multi-container-aci
+  imageRegistryCredentials:
+  - server: ${{ secrets.ACR_LOGIN_SERVER }}
+    username: ${{ secrets.ACR_USERNAME }}
+    password: ${{ secrets.ACR_PASSWORD }}
+type: Microsoft.ContainerInstance/containerGroups
