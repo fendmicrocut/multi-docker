@@ -59,14 +59,14 @@ properties:
     properties:
       image: udemydemoregistry.azurecr.io/postgres:alpine
       environmentVariables:
-      - name: PGUSER
+      - name: POSTGRES_USER
         value: "postgres"
-      - name: PGDATABASE
+      - name: POSTGRES_DB
         value: "postgres"
       - name: PGDATA
         value: "/tmp/pgdata"
       secureEnvironmentVariables:
-      - name: PGPASSWORD
+      - name: POSTGRES_PASSWORD
         value: PGPassword
       resources:
         requests:

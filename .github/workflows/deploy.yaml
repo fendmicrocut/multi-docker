@@ -52,11 +52,22 @@ jobs:
           docker tag redis:alpine ${{ secrets.ACR_LOGIN_SERVER }}/redis:alpine
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/redis:alpine
 
-      - name: Pull and Push Postgres Image
-        run: |
-          docker pull postgres:alpine
-          docker tag postgres:alpine ${{ secrets.ACR_LOGIN_SERVER }}/postgres:alpine
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/postgres:alpine
+      - name: Import Redis & Postgres from Docker Hub to ACR
+        uses: azure/cli@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az acr import \
+              --name ${{ secrets.ACR_LOGIN_SERVER }} \
+              --source docker.io/library/postgres:15-alpine \
+              --image postgres:15-alpine \
+              --force
+
+            az acr import \
+              --name ${{ secrets.ACR_LOGIN_SERVER }} \
+              --source docker.io/library/redis:7.2-alpine \
+              --image redis:7.2-alpine \
+              --force
 
       - name: Azure Login
         uses: azure/login@v2
