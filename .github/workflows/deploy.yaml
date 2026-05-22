@@ -47,12 +47,73 @@ jobs:
       - name: Deploy Multiple Containers to Azure Container Apps
         uses: azure/CLI@v2
         with:
+#          inlineScript: |
+#            az containerapp update \
+#              --name "multi-container-app" \
+#              --resource-group "TestUdemyCourseRG" \
+#              --container-name-images \
+#                "client=docker.io/fendmicrocut/multi-client-up:latest" \
+#                "nginx=docker.io/fendmicrocut/multi-nginx-up:latest" \
+#                "server=docker.io/fendmicrocut/multi-server-up:latest" \
+#                "worker=docker.io/fendmicrocut/multi-worker-up:latest"
           inlineScript: |
-            az containerapp update \
-              --name "multi-container-app" \
+            echo "Creating the multi-container configuration file dynamically..."
+            
+            cat << 'EOF' > deploy-aci.yaml
+            apiVersion: '2021-10-01'
+            location: southeastasia
+            name: TestUdemyCourseRG
+            properties:
+              containers:
+              - name: client
+                properties:
+                  image: docker.io/fendmicrocut/multi-client-up:latest
+                  resources:
+                    requests:
+                      cpu: 1.0
+                      memoryInGB: 1.5
+                  ports:
+                  - port: 3000
+              - name: nginx
+                properties:
+                  image: docker.io/fendmicrocut/multi-nginx-up:latest
+                  resources:
+                    requests:
+                      cpu: 1.0
+                      memoryInGB: 1.5
+                  ports:
+                  - port: 80
+              - name: server
+                properties:
+                  image: docker.io/fendmicrocut/multi-server-up:latest
+                  resources:
+                    requests:
+                      cpu: 1.0
+                      memoryInGB: 1.5
+                  ports:
+                  - port: 5000
+              - name: worker
+                properties:
+                  image: docker.io/fendmicrocut/multi-worker-up:latest
+                  resources:
+                    requests:
+                      cpu: 1.0
+                      memoryInGB: 1.5
+                  ports:
+                  - port: 3000
+              osType: Linux
+              ipAddress:
+                type: Public
+                ports:
+                - protocol: TCP
+                  port: 80
+                - protocol: TCP
+                  port: 5000
+            type: Microsoft.ContainerInstance/containerGroups
+            EOF
+
+            echo "Executing inline script to update Azure Container Instances..."
+            
+            az container create \
               --resource-group "TestUdemyCourseRG" \
-              --container-name-images \
-                "client=docker.io/fendmicrocut/multi-client-up:latest" \
-                "nginx=docker.io/fendmicrocut/multi-nginx-up:latest" \
-                "server=docker.io/fendmicrocut/multi-server-up:latest" \
-                "worker=docker.io/fendmicrocut/multi-worker-up:latest"
+              --file deploy-aci.yaml
