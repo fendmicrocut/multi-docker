@@ -6,8 +6,8 @@ on:
 
 env:
   RESOURCE_GROUP: "TestUdemyCourseRG"
-  ACI_NAME: "multi-container-aci"
-  LOCATION: "southeastasia"
+#  ACI_NAME: "multi-container-aci"
+#  LOCATION: "southeastasia"
 
 jobs:
   build:
@@ -54,12 +54,10 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy Multi-Container to ACI
-        uses: azure/aci-deploy@v1
+        uses: azure/azure-cli@v2
         with:
-          resource-group: ${{ env.RESOURCE_GROUP }}
-          dns-name-label: ${{ env.ACI_NAME }}
-          name: ${{ env.ACI_NAME }}
-          location: ${{ env.LOCATION }}
-          registry-username: ${{ secrets.ACR_USERNAME }}
-          registry-password: ${{ secrets.ACR_PASSWORD }}
-          config-file: ./aci-compose.yaml
+          azcliversion: latest
+          inlineScript: |
+            az container create \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --file ./aci-compose.yaml
