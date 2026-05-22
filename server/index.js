@@ -25,14 +25,9 @@ pgClient.on('error', () => console.log('Lost PG connection, attempting to reconn
 // Connect with a small delay or retry block to give the Postgres container time to boot
 setTimeout(() => {
   pgClient.query('CREATE TABLE IF NOT EXISTS values (number INT)')
+    .then(() => console.log('PostgreSQL Table checked/created successfully.'))
     .catch((err) => console.log('Database not ready yet, retrying shortly...', err));
 }, 5000); // 5-second initial boot delay
-
-/*pgClient.on("connect", (client) => {
-  client
-    .query("CREATE TABLE IF NOT EXISTS values (number INT)")
-    .catch((err) => console.error(err));
-});*/
 
 // Redis Client Setup
 const redis = require("redis");
@@ -40,13 +35,22 @@ const redisClient = redis.createClient({
   socket: {
     host: keys.redisHost,
     port: keys.redisPort,
-    reconnectStrategy: () => 1000,
+    reconnectStrategy: (retries) => {
+      console.log(`Redis connection lost. Retry attempt: ${retries}`);
+      return 1000; // reconnect after 1 second
+    },
   },
 });
-const redisPublisher = redisClient.duplicate();
 
-redisClient.connect();
-redisPublisher.connect();
+// Guard against unhandled Redis client errors killing the app process
+redisClient.on('error', (err) => console.error('Redis Client Error:', err));
+
+const redisPublisher = redisClient.duplicate();
+redisPublisher.on('error', (err) => console.error('Redis Publisher Error:', err));
+
+// Establish baseline connections
+redisClient.connect().catch(err => console.error("Initial Redis connection failed:", err));
+redisPublisher.connect().catch(err => console.error("Initial Redis Publisher connection failed:", err));
 
 // Express route handlers
 
@@ -55,14 +59,24 @@ app.get("/", (req, res) => {
 });
 
 app.get("/values/all", async (req, res) => {
-  const values = await pgClient.query("SELECT * from values");
-
-  res.send(values.rows);
+  try {
+    const values = await pgClient.query("SELECT * from values");
+    res.send(values.rows);
+  } catch (err) {
+    console.error("Error reading from PostgreSQL:", err);
+    res.status(500).send([]);
+  }
 });
 
 app.get("/values/current", async (req, res) => {
-  const values = await redisClient.hGetAll("values");
-  res.send(values);
+  try {
+    const values = await redisClient.hGetAll("values");
+    // Ensure we return an empty object if the hash doesn't exist yet
+    res.send(values || {});
+  } catch (err) {
+    console.error("Error reading from Redis hash:", err);
+    res.status(500).send({});
+  }
 });
 
 app.post("/values", async (req, res) => {
@@ -72,16 +86,19 @@ app.post("/values", async (req, res) => {
     return res.status(422).send("Index too high");
   }
 
-  await redisClient.hSet("values", index, "Nothing yet!");
-  await redisPublisher.publish("insert", index);
-  pgClient.query("INSERT INTO values(number) VALUES($1)", [index]);
+  try {
+    await redisClient.hSet("values", index, "Nothing yet!");
+    await redisPublisher.publish("insert", index);
+    
+    // Crucial fix: Await the Postgres database transaction inside our try block
+    await pgClient.query("INSERT INTO values(number) VALUES($1)", [index]);
 
-  res.send({ working: true });
+    res.send({ working: true });
+  } catch (err) {
+    console.error("Failed to process transaction request:", err);
+    res.status(500).send({ error: "Database transaction failed" });
+  }
 });
-
-/*app.listen(5000, (err) => {
-  console.log("Listening");
-});*/
 
 const PORT = process.env.PORT || 5000;
 
