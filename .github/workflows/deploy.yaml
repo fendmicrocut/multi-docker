@@ -46,6 +46,18 @@ jobs:
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/multi-worker ./worker
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/multi-worker:latest
 
+      - name: Pull and Push Redis Image
+        run: |
+          docker pull redis:alpine
+          docker tag redis:alpine ${{ secrets.ACR_LOGIN_SERVER }}/redis:alpine
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/redis:alpine
+
+      - name: Pull and Push Postgres Image
+        run: |
+          docker pull postgres:alpine
+          docker tag postgres:alpine ${{ secrets.ACR_LOGIN_SERVER }}/postgres:alpine
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/postgres:alpine
+
       - name: Azure Login
         uses: azure/login@v2
         with:

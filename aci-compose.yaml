@@ -36,14 +36,14 @@ properties:
           memoryInGB: 0.5
   - name: redis-server
     properties:
-      image: redis:alpine
+      image: udemydemoregistry.azurecr.io/redis:alpine
       resources:
         requests:
           cpu: 0.8
           memoryInGB: 1.3
   - name: postgres-database
     properties:
-      image: postgres:alpine
+      image: udemydemoregistry.azurecr.io/postgres:alpine
       environmentVariables:
       - name: POSTGRES_USER
         value: "postgres"
