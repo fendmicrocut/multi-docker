@@ -22,12 +22,23 @@ const pgClient = new Pool({
 // Use an event listener to handle reconnection logic gracefully
 pgClient.on('error', () => console.log('Lost PG connection, attempting to reconnect...'));
 
-// Connect with a small delay or retry block to give the Postgres container time to boot
-setTimeout(() => {
+// Robust table initializer with an automatic connection retry loop
+function initializePostgresTable() {
+  console.log("Attempting to verify PostgreSQL schema initialization...");
+  
   pgClient.query('CREATE TABLE IF NOT EXISTS values (number INT)')
-    .then(() => console.log('PostgreSQL Table checked/created successfully.'))
-    .catch((err) => console.log('Database not ready yet, retrying shortly...', err));
-}, 5000); // 5-second initial boot delay
+    .then(() => {
+      console.log('SUCCESS: PostgreSQL "values" table is verified and active.');
+    })
+    .catch((err) => {
+      console.error('Database connection not established yet. Retrying in 3 seconds...', err.message);
+      // Wait 3 seconds and attempt to verify database structures again
+      setTimeout(initializePostgresTable, 3000);
+    });
+}
+
+// Kick off the loop immediately on container start
+initializePostgresTable();
 
 // Redis Client Setup
 const redis = require("redis");
