@@ -79,6 +79,12 @@ app.post("/values", async (req, res) => {
   res.send({ working: true });
 });
 
-app.listen(5000, (err) => {
+/*app.listen(5000, (err) => {
   console.log("Listening");
+});*/
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend API successfully listening on port ${PORT}`);
 });
