@@ -77,4 +77,5 @@ jobs:
           inlineScript: |
             az container create \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --file ./aci-compose.yaml
+              --file ./aci-compose.yaml \
+              --no-wait
