@@ -60,6 +60,6 @@ jobs:
           dns-name-label: ${{ env.ACI_NAME }}
           name: ${{ env.ACI_NAME }}
           location: ${{ env.LOCATION }}
-          acr-user: ${{ secrets.ACR_USERNAME }}
-          acr-password: ${{ secrets.ACR_PASSWORD }}
+          registry-username: ${{ secrets.ACR_USERNAME }}
+          registry-password: ${{ secrets.ACR_PASSWORD }}
           config-file: ./aci-compose.yaml
