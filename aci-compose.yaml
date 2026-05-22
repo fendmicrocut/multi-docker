@@ -53,7 +53,7 @@ properties:
       port: 8080
     dnsNameLabel: multi-container-aci
   imageRegistryCredentials:
-  - server: ${{ secrets.ACR_LOGIN_SERVER }}
-    username: ${{ secrets.ACR_USERNAME }}
-    password: ${{ secrets.ACR_PASSWORD }}
+  - server: ACRLoginServer
+    username: ACRUsername
+    password: ACRPassword
 type: Microsoft.ContainerInstance/containerGroups
