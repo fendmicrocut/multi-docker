@@ -91,7 +91,7 @@ jobs:
                       cpu: 1.0
                       memoryInGB: 1.5
                   ports:
-                  - port: 5000
+                  - port: 8080
               - name: worker
                 properties:
                   image: docker.io/fendmicrocut/multi-worker-up:latest
@@ -100,7 +100,7 @@ jobs:
                       cpu: 1.0
                       memoryInGB: 1.5
                   ports:
-                  - port: 3000
+                  - port: 5000
               osType: Linux
               ipAddress:
                 type: Public
@@ -108,7 +108,7 @@ jobs:
                 - protocol: TCP
                   port: 80
                 - protocol: TCP
-                  port: 8080
+                  port: 9000
             type: Microsoft.ContainerInstance/containerGroups
             EOF
 
