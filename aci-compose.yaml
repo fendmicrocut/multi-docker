@@ -23,6 +23,20 @@ properties:
   - name: server
     properties:
       image: udemydemoregistry.azurecr.io/multi-server:latest
+      environmentVariables:
+      - name: REDIS_HOST
+        value: "127.0.0.1"
+      - name: REDIS_PORT
+        value: "6379"
+      - name: PGHOST
+        value: "127.0.0.1"
+      - name: PGUSER
+        value: "postgres"
+      - name: PGDATABASE
+        value: "postgres"
+      secureEnvironmentVariables:
+      - name: PGPASSWORD
+        value: PGPassword
       resources:
         requests:
           cpu: 1.0
@@ -45,15 +59,15 @@ properties:
     properties:
       image: udemydemoregistry.azurecr.io/postgres:alpine
       environmentVariables:
-      - name: POSTGRES_USER
+      - name: PGUSER
         value: "postgres"
-      - name: POSTGRES_DB
+      - name: PGDATABASE
         value: "postgres"
       - name: PGDATA
         value: "/var/lib/postgresql/data/pgdata"
       secureEnvironmentVariables:
-      - name: POSTGRES_PASSWORD
-        value: "PGPassword"
+      - name: PGPASSWORD
+        value: PGPassword
       resources:
         requests:
           cpu: 1.0
