@@ -91,7 +91,7 @@ jobs:
                       cpu: 1.0
                       memoryInGB: 1.5
                   ports:
-                  - port: 5000
+                  - port: 8080
               - name: worker
                 properties:
                   image: docker.io/fendmicrocut/multi-worker-up:latest
