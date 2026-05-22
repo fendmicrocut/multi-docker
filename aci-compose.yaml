@@ -64,7 +64,7 @@ properties:
       - name: PGDATABASE
         value: "postgres"
       - name: PGDATA
-        value: "/var/lib/postgresql/data/pgdata"
+        value: "/tmp/pgdata"
       secureEnvironmentVariables:
       - name: PGPASSWORD
         value: PGPassword
