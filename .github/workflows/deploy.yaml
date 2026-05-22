@@ -1,4 +1,4 @@
-name: Deploy MultiDocker
+name: Deploy MultiContainer
 on:
   push:
     branches:
@@ -38,34 +38,21 @@ jobs:
 #          version_label: ${{ github.sha }}
 #         deployment_package: deploy.zip
 
-#Prerequisites
-#1. Azure App Service: Create a web app in the Azure Portal.
-#2. Publish Profile: Go to your App Service's Overview page, click Download publish profile, and save the file.
-#3. GitHub Secret: In your repository, go to Settings > Secrets and variables > Actions and create a new secret named AZURE_WEBAPP_PUBLISH_PROFILE with the contents of your downloaded profile.
-
-#      - name: Deploy to Azure App Service
-#        uses: azure/webapps-deploy@v3
-#        with:
-#          app-name: multi-docker-app
-#          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-#          package: deploy.zip
-
-
       # Log in to Azure using a Service Principal or Publish Profile
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Deploy the image directly from Docker Hub to your App Service
-      - name: 'Deploy Container to Azure App Service'
-        uses: azure/webapps-deploy@v3
+      - name: Deploy Multiple Containers to Azure Container Apps
+        uses: azure/CLI@v2
         with:
-          app-name: 'multi-docker-app'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          configuration-file: './docker-compose.yml'
-          images: |
-            docker.io/fendmicrocut/multi-client-up:latest
-            docker.io/fendmicrocut/multi-nginx-up:latest
-            docker.io/fendmicrocut/multi-server-up:latest
-            docker.io/fendmicrocut/multi-worker-up:latest
+          inlineScript: |
+            az containerapp update \
+              --name "multi-container-app" \
+              --resource-group "TestUdemyCourseRG" \
+              --container-name-images \
+                "client=docker.io/fendmicrocut/multi-client-up:latest" \
+                "nginx=docker.io/fendmicrocut/multi-nginx-up:latest" \
+                "server=docker.io/fendmicrocut/multi-server-up:latest" \
+                "worker=docker.io/fendmicrocut/multi-worker-up:latest"
