@@ -89,4 +89,5 @@ jobs:
             az container create \
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --file ./aci-compose.yaml \
+              --restart-policy OnFailure \
               --no-wait
