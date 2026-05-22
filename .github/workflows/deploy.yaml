@@ -61,12 +61,9 @@ jobs:
       - name: 'Deploy Container to Azure App Service'
         uses: azure/webapps-deploy@v3
         with:
-          inlineScript: |
-            az containerapp update \
-              --name "multi-docker-app" \
-              --resource-group "TestUdemyCourseRG" \
-              --container-name-images \
-                "client=docker.io/fendmicrocut/multi-client-up:latest" \
-                "nginx=docker.io/fendmicrocut/multi-nginx-up:latest" \
-                "server=docker.io/fendmicrocut/multi-server-up:latest" \
-                "worker=docker.io/fendmicrocut/multi-worker-up:latest" 
+          app-name: 'multi-docker-app'
+          images: |
+            docker.io/fendmicrocut/multi-client-up:latest
+            docker.io/fendmicrocut/multi-nginx-up:latest
+            docker.io/fendmicrocut/multi-server-up:latest
+            docker.io/fendmicrocut/multi-worker-up:latest
