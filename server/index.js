@@ -19,11 +19,20 @@ const pgClient = new Pool({
   port: keys.pgPort,
 });
 
-pgClient.on("connect", (client) => {
+// Use an event listener to handle reconnection logic gracefully
+pgClient.on('error', () => console.log('Lost PG connection, attempting to reconnect...'));
+
+// Connect with a small delay or retry block to give the Postgres container time to boot
+setTimeout(() => {
+  pgClient.query('CREATE TABLE IF NOT EXISTS values (number INT)')
+    .catch((err) => console.log('Database not ready yet, retrying shortly...', err));
+}, 5000); // 5-second initial boot delay
+
+/*pgClient.on("connect", (client) => {
   client
     .query("CREATE TABLE IF NOT EXISTS values (number INT)")
     .catch((err) => console.error(err));
-});
+});*/
 
 // Redis Client Setup
 const redis = require("redis");

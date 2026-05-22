@@ -6,9 +6,6 @@ properties:
   - name: client
     properties:
       image: udemydemoregistry.azurecr.io/multi-client:latest
-      ports:
-      - port: 3000
-        protocol: TCP
       resources:
         requests:
           cpu: 1.0
@@ -26,9 +23,6 @@ properties:
   - name: server
     properties:
       image: udemydemoregistry.azurecr.io/multi-server:latest
-      ports:
-      - port: 8080
-        protocol: TCP
       resources:
         requests:
           cpu: 1.0
@@ -36,9 +30,28 @@ properties:
   - name: worker
     properties:
       image: udemydemoregistry.azurecr.io/multi-worker:latest
-      ports:
-      - port: 5000
-        protocol: TCP
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  - name: redis-server
+    properties:
+      image: redis:alpine
+      resources:
+        requests:
+          cpu: 1.0
+          memoryInGB: 1.5
+  - name: postgres-database
+    properties:
+      image: postgres:alpine
+      environmentVariables:
+      - name: POSTGRES_USER
+        value: "postgres"
+      - name: POSTGRES_DB
+        value: "postgres"
+      secureEnvironmentVariables:
+      - name: POSTGRES_PASSWORD
+        value: PGPassword
       resources:
         requests:
           cpu: 1.0
@@ -49,8 +62,6 @@ properties:
     ports:
     - protocol: TCP
       port: 80
-    - protocol: TCP
-      port: 8080
     dnsNameLabel: multi-container-aci
   imageRegistryCredentials:
   - server: ACRLoginServer

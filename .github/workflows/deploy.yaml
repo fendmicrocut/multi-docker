@@ -6,8 +6,6 @@ on:
 
 env:
   RESOURCE_GROUP: "TestUdemyCourseRG"
-#  ACI_NAME: "multi-container-aci"
-#  LOCATION: "southeastasia"
 
 jobs:
   build:
@@ -58,6 +56,7 @@ jobs:
           sed -i "s|ACRLoginServer|${{ secrets.ACR_LOGIN_SERVER }}|g" ./aci-compose.yaml
           sed -i "s|ACRUsername|${{ secrets.ACR_USERNAME }}|g" ./aci-compose.yaml
           sed -i "s|ACRPassword|${{ secrets.ACR_PASSWORD }}|g" ./aci-compose.yaml
+          sed -i "s|PGPassword|${{ secrets.PG_PASSWORD }}|g" ./aci-compose.yaml
 
       - name: Deploy Multi-Container to ACI
         uses: azure/cli@v1
