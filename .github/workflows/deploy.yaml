@@ -23,8 +23,8 @@ jobs:
       - run: docker push fendmicrocut/multi-server-up
       - run: docker push fendmicrocut/multi-worker-up
 
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
+#      - name: Generate deployment package
+#        run: zip -r deploy.zip . -x '*.git*'
 
 #      - name: Deploy to EB
 #        uses: einaregilsson/beanstalk-deploy@v18
@@ -43,9 +43,30 @@ jobs:
 #2. Publish Profile: Go to your App Service's Overview page, click Download publish profile, and save the file.
 #3. GitHub Secret: In your repository, go to Settings > Secrets and variables > Actions and create a new secret named AZURE_WEBAPP_PUBLISH_PROFILE with the contents of your downloaded profile.
 
-      - name: Deploy to Azure App Service
+#      - name: Deploy to Azure App Service
+#        uses: azure/webapps-deploy@v3
+#        with:
+#          app-name: multi-docker-app
+#          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+#          package: deploy.zip
+
+
+      # Log in to Azure using a Service Principal or Publish Profile
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Deploy the image directly from Docker Hub to your App Service
+      - name: 'Deploy Container to Azure App Service'
         uses: azure/webapps-deploy@v3
         with:
-          app-name: multi-docker-app
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: deploy.zip
+          inlineScript: |
+            az containerapp update \
+              --name "multi-docker-app" \
+              --resource-group "TestUdemyCourseRG" \
+              --container-name-images \
+                "client=docker.io/fendmicrocut/multi-client-up:latest" \
+                "nginx=docker.io/fendmicrocut/multi-nginx-up:latest" \
+                "server=docker.io/fendmicrocut/multi-server-up:latest" \
+                "worker=docker.io/fendmicrocut/multi-worker-up:latest" 
