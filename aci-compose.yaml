@@ -8,8 +8,8 @@ properties:
       image: udemydemoregistry.azurecr.io/multi-client:latest
       resources:
         requests:
-          cpu: 1.0
-          memoryInGB: 1.5
+          cpu: 0.5
+          memoryInGB: 0.5
   - name: nginx
     properties:
       image: udemydemoregistry.azurecr.io/multi-nginx:latest
@@ -18,8 +18,8 @@ properties:
         protocol: TCP
       resources:
         requests:
-          cpu: 1.0
-          memoryInGB: 1.5
+          cpu: 0.2
+          memoryInGB: 0.2
   - name: server
     properties:
       image: udemydemoregistry.azurecr.io/multi-server:latest
@@ -32,15 +32,15 @@ properties:
       image: udemydemoregistry.azurecr.io/multi-worker:latest
       resources:
         requests:
-          cpu: 1.0
-          memoryInGB: 1.5
+          cpu: 0.5
+          memoryInGB: 0.5
   - name: redis-server
     properties:
       image: redis:alpine
       resources:
         requests:
-          cpu: 1.0
-          memoryInGB: 1.5
+          cpu: 0.8
+          memoryInGB: 1.3
   - name: postgres-database
     properties:
       image: postgres:alpine
@@ -55,7 +55,7 @@ properties:
       resources:
         requests:
           cpu: 1.0
-          memoryInGB: 1.5
+          memoryInGB: 2.0
   osType: Linux
   ipAddress:
     type: Public
