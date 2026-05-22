@@ -64,6 +64,10 @@ jobs:
             location: southeastasia
             name: TestUdemyCourseRG
             properties:
+              imageRegistryCredentials:
+                - server: index.docker.io
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
               containers:
               - name: client
                 properties:
