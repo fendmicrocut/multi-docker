@@ -100,8 +100,8 @@ app.post("/values", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const API_PORT = 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend API successfully listening on port ${PORT}`);
+app.listen(API_PORT, '0.0.0.0', () => {
+  console.log(`Backend API forcefully locked and listening on port ${API_PORT}`);
 });
