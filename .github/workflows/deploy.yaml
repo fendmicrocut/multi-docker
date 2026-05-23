@@ -71,7 +71,7 @@ jobs:
               --image redis:7.2-alpine \
               --username "${{ secrets.DOCKER_USERNAME }}" \
               --password "${{ secrets.DOCKER_PASSWORD }}" \
-              --forcee
+              --force
 
       - name: Azure Login
         uses: azure/login@v2
