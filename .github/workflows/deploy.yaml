@@ -61,13 +61,17 @@ jobs:
               --name ${{ secrets.ACR_LOGIN_SERVER }} \
               --source docker.io/library/postgres:15-alpine \
               --image postgres:15-alpine \
+              --username "${{ secrets.DOCKER_USERNAME }}" \
+              --password "${{ secrets.DOCKER_PASSWORD }}" \
               --force
 
             az acr import \
               --name ${{ secrets.ACR_LOGIN_SERVER }} \
               --source docker.io/library/redis:7.2-alpine \
               --image redis:7.2-alpine \
-              --force
+              --username "${{ secrets.DOCKER_USERNAME }}" \
+              --password "${{ secrets.DOCKER_PASSWORD }}" \
+              --forcee
 
       - name: Azure Login
         uses: azure/login@v2
